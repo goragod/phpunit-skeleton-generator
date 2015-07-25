@@ -34,10 +34,17 @@ For a system-wide installation via Composer, you can run:
 Make sure you have `~/.composer/vendor/bin/` in your path.
 
 ## อัปเดท by Goragod Wiriya
+
 พบปัญหาการใช้งานเกี่ยวกับวงเล็บถ้ามีอะไรต่อท้ายจะ error และ หากเป็นฟังก์ชั่น
+
 มีการเพิ่มกฏเล็กน้อย
+
 1. เครื่องหมายเปรียบเทียบต้องอยู่ภายใต้ [...] เช่น [==] หรือ [<=]
+
 2. สามารถใช้ฟังก์ชั่นได้ โดยไม่ต้องใส่วงเล็บครอบ
+
 ###ตัวอย่าง
+
 @assert (param1, param2) [==] expectedResult
+
 @assert where(1)->text() [!=] expectedResult
