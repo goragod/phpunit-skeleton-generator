@@ -154,13 +154,14 @@ class TestGenerator extends AbstractGenerator
 
                 if (preg_match_all('/@assert(.*)$/Um', $method->getDocComment(), $annotations)) {
                     foreach ($annotations[1] as $annotation) {
-                        if (preg_match('/^\s(.*)\s+([^\s]*)\s+(".*")$/', $annotation, $matches)) {
+                        if (preg_match('/\s{0,}(.*)\s+\[(throws|[!=<>]+)\]\s+(.*)\s{0,}$/', $annotation, $matches)) {
                             if (preg_match('/^\((.*)\)$/', $matches[1], $ps)) {
                                 $matches[1] = $ps[1];
                                 $mode = '';
                             } else {
                                 $mode = 'Function';
                             }
+                            var_dump($matches);
                             switch ($matches[2]) {
                                 case '==':
                                     $assertion = 'Equals';
