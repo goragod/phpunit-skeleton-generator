@@ -161,7 +161,6 @@ class TestGenerator extends AbstractGenerator
                             } else {
                                 $mode = 'Function';
                             }
-                            var_dump($matches);
                             switch ($matches[2]) {
                                 case '==':
                                     $assertion = 'Equals';
