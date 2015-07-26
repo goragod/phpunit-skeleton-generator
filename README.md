@@ -63,7 +63,9 @@ Make sure you have `~/.composer/vendor/bin/` in your path.
 
     class myClassTest extends \PHPUnit_Framework_TestCase
     {
+
         protected $object;
+
         protected function setUp()
         {
             $this->object = new myClass(new Query);
@@ -72,7 +74,7 @@ Make sure you have `~/.composer/vendor/bin/` in your path.
         }
     }
 
-### ตัวอย่างการใช้งาน assert
+### ตัวอย่างการใช้งาน @assert
 
     @assert (param1, param2) [==] 1
     @assert where(1)->text() [!=] "expectedResult"
@@ -87,6 +89,7 @@ Make sure you have `~/.composer/vendor/bin/` in your path.
     public function testMyFunction()
     {
         $this->object->properties = 0;
+
         $this->assertEquals(
             expectedResult, $this->object->myFunction(param1, param2)
         );
