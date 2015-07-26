@@ -37,83 +37,55 @@ Make sure you have `~/.composer/vendor/bin/` in your path.
 
 พบปัญหาการใช้งานเกี่ยวกับวงเล็บถ้ามีอะไรต่อท้ายจะ error และ หากเป็นการเรียกฟังก์ชั่น
 
-มีการเพิ่มกฏเล็กน้อย
-1. สามารถกำหนดค่าเริ่มต้นที่จะใส่ลงในฟังก์ชั่น setup ได้
+### มีการเพิ่มกฏเล็กน้อย
+* สามารถกำหนดค่าเริ่มต้นที่จะใส่ลงในฟังก์ชั่น setup ได้
+* สามารถกำหนด parameter ให้กับ Class ในตอนเริ่มต้นได้
+* ผลลัพท์ที่เป็น string ต้องอยู่ภายใต้เครื่องหมาย "" เท่านั้น
+* สามารถใส่ผลลัพท์ที่เป็นตัวเลขได้
+* สามารถใส่ผลลัพท์ในรูป Array ได้
+* สามารถใส่ option ได้โดยมีรูปแบบ [[....]] โดยใส่ด้านท้ายสุดของยรรทัด option จะถูกแทรกลงใน testFunction ก่อนทำการประมวลผล Test
+* สามารถใช้ฟังก์ชั่นได้ โดยไม่ต้องใส่วงเล็บครอบ
 
-2. สามารถกำหนด parameter ให้กับ Class ในตอนเริ่มต้นได้
-
-/**
-
-*
-
-* @setupParam new Object
-
-* @setup $this->value1 = 'one';
-
-* @setup $this->value2 = 'true';
-
-*/
-
-myClass {
-
-
-
-}
-
-ผลลัพท์
-
-class myClassTest extends \PHPUnit_Framework_TestCase
-
-{
-
-    protected $object;
-
-    protected function setUp()
-
-    {
-
-        $this->object = new myClass(new Query);
-
-        $$this->object->value1 = 'one';
-
-        $$this->object->value2 = 'true';
+### ตัวอย่างการใช้งาน setup และ setupParam
+    /**
+    *
+    * @setupParam new Object
+    * @setup $this->value1 = 'one';
+    * @setup $this->value2 = 'true';
+    */
+    myClass {
 
     }
 
-}
+ผลลัพท์
 
+    class myClassTest extends \PHPUnit_Framework_TestCase
+    {
+        protected $object;
+        protected function setUp()
+        {
+            $this->object = new myClass(new Query);
+            $this->object->value1 = 'one';
+            $this->object->value2 = 'true';
+        }
+    }
 
-1. ผลลัพท์ที่เป็น string ต้องอยู่ภายใต้เครื่องหมาย "" เท่านั้น
+### ตัวอย่างการใช้งาน assert
 
-2. สามารถใส่ผลลัพท์ที่เป็นตัวเลขได้
+    @assert (param1, param2) [==] 1
+    @assert where(1)->text() [!=] "expectedResult"
+    @assert (param1, param2) [==] array('one', 'two')
 
-3. สามารถใส่ผลลัพท์ในรูป Array ได้
+### ตัวอย่างเมื่อมีการใส่ option ลงใน assert
 
-4. สามารถใส่ option ได้โดยมีรูปแบบ [[....]] โดยใส่ด้านท้ายสุดของยรรทัด option จะถูกแทรกลงใน testFunction ก่อนทำการประมวลผล Test
+    @assert (param1, param2) [==] 1 [[$this->properties = 0]]
 
-3. สามารถใช้ฟังก์ชั่นได้ โดยไม่ต้องใส่วงเล็บครอบ
+ผลลัพท์
 
-### ตัวอย่าง
-
-@assert (param1, param2) [==] 1
-
-@assert where(1)->text() [!=] "expectedResult"
-
-@assert (param1, param2) [==] array('one', 'two')
-
-ตัวอย่างการใส่ option
-
-@assert (param1, param2) [==] 1 [[$this->properties = 0]]
-
-public function testCreateUrl3()
-
- {
-
-    $this->object->properties = 0;
-
-    $this->assertEquals(
-
+    public function testCreateUrl3()
+    {
+        $this->object->properties = 0;
+        $this->assertEquals(
             ...., .....
-
-    );
-}
+        );
+    }
