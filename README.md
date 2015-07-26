@@ -6,19 +6,19 @@
 
 * ให้ทำการ clone สคริปต์ หรือ ดาวน์โหลด script จาก GitHub ไปไว้ในเครื่องได้เลยครับ
 * เปิด `terminal` ย้ายโฟลเดอร์ไปยังโฟลเดอร์ที่ติดตั้งโปรแกรมไว้
+* ดาวน์โหลด composer และติดตั้งโปรแกรมที่จำเป็น โดย composer
+* รอให้ composer ทำการติดตั้งสคริปต์ที่จำเป็นจนแล้วเสร็จ หลังจากนั้นก็ใช้งานได้เลย
 
     cd /path/to/phpunit_skeleton_generator/
-
-* ดาวน์โหลด composer และติดตั้งโปรแกรมที่จำเป็น โดย composer
-
     wget http://getcomposer.org/composer.phar
     php composer.phar install
 
-* รอให้ composer ทำการติดตั้งสคริปต์ที่จำเป็นจนแล้วเสร็จ หลังจากนั้นก็ใช้งานได้เลย
+## การใช้งานร่วมกับ NetBeans
+
 * การใช้งาน เนื่องจากผมใช้งานร่วมกับ NetBeans ผมตั้งค่าตามนี้ https://netbeans.org/kb/docs/php/phpunit.html
 * โดยในช่อง `Skeleton Generator scripts` ผมเลือกไปที่ไฟล์ `phpunit-skelgen` ที่อยู่ภายใต้โฟลเดอร์ที่ติดตั้งไว้
 
-## อัปเดท by `Goragod Wiriya`
+## อัปเดทโดย `Goragod Wiriya`
 
 พบปัญหาการใช้งานเกี่ยวกับวงเล็บถ้ามีอะไรต่อท้ายจะ error และ หากเป็นการเรียกฟังก์ชั่น และเพิ่มเติมความสามารถให้กับ Generator
 * สามารถกำหนดค่าเริ่มต้นที่จะใส่ลงในฟังก์ชั่น setup ได้ `@setup`
