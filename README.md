@@ -2,36 +2,16 @@
 
 `phpunit-skelgen` เป็นโปรแกรมสำหรับช่วยสร้าง Test โดยมีหน้าที่ในการอ่านคลาสและนำมาสร้างเป็นไฟล์สำหรับใช้ทดสอบโดย PHPUnit
 
-## Installation
+## การติดตั้งจาก GitHub
 
-### PHP Archive (PHAR)
-
-The easiest way to obtain phpunit-skelgen is to download a [PHP Archive (PHAR)](http://php.net/phar) that has all required dependencies of phpunit-skelgen bundled in a single file:
-
-    wget https://phar.phpunit.de/phpunit-skelgen.phar
-    chmod +x phpunit-skelgen.phar
-    mv phpunit-skelgen.phar /usr/local/bin/phpunit-skelgen
-
-You can also immediately use the PHAR after you have downloaded it, of course:
-
-    wget https://phar.phpunit.de/phpunit-skelgen.phar
-    php phpunit-skelgen.phar
-
-### Composer
-
-Simply add a dependency on `phpunit/phpunit-skeleton-generator` to your project's `composer.json` file if you use [Composer](http://getcomposer.org/) to manage the dependencies of your project. Here is a minimal example of a `composer.json` file that just defines a development-time dependency on phpunit/phpunit-skeleton-generator:
-
-    {
-        "require-dev": {
-            "phpunit/phpunit-skeleton-generator": "*"
-        }
-    }
-
-For a system-wide installation via Composer, you can run:
-
-    composer global require "phpunit/phpunit-skeleton-generator=*"
-
-Make sure you have `~/.composer/vendor/bin/` in your path.
+* ให้ทำการ clone สคริปต์ หรือ ดาวน์โหลด script จาก GitHub ไปไว้ในเครื่องได้เลยครับ
+* เปิด terminal ย้ายโฟลเดอร์ไปโฟลเดอร์ที่ติดตงโปรแกรมไว้
+    cd /path/to/phpunit_skeleton_generator/
+* ติดตั้ง โดย composer
+    php composer.phar install
+* รอให้ composer ทำการติดตั้งสคริปต์ที่จำเป็นจนแล้วเสร็จ หลังจากนั้นก็ใช้งานได้เลย
+* การใช้งาน เนื่องจากผมใช้งานร่วมกับ NetBeans ผมตั้งค่าตามนี้ https://netbeans.org/kb/docs/php/phpunit.html
+* โดยในช่อง `Skeleton Generator scripts` ผมเลือกไปที่ไฟล์ `phpunit-skelgen` ที่อยู่ภายใต้โฟลเดอร์ที่ติดตั้งไว้
 
 ## อัปเดท by `Goragod Wiriya`
 
@@ -51,7 +31,7 @@ Make sure you have `~/.composer/vendor/bin/` in your path.
 
     /**
     *
-    * @setupParam new Object
+    * @setupParam new className
     * @setup $this->value1 = 'one';
     * @setup $this->value2 = 'true';
     */
@@ -68,7 +48,7 @@ Make sure you have `~/.composer/vendor/bin/` in your path.
 
         protected function setUp()
         {
-            $this->object = new myClass(new Query);
+            $this->object = new myClass(new className);
             $this->object->value1 = 'one';
             $this->object->value2 = 'true';
         }
