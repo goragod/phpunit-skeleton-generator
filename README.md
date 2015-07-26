@@ -1,6 +1,6 @@
 # PHPUnit Skeleton Generator
 
-`phpunit-skelgen` is a tool that can generate skeleton test classes from production code classes and vice versa.
+`phpunit-skelgen` เป็นโปรแกรมสำหรับช่วยสร้าง Test โดยมีหน้าที่ในการอ่านคลาสและนำมาสร้างเป็นไฟล์สำหรับใช้ทดสอบคลาสโดย UnitTest
 
 ## Installation
 
@@ -35,16 +35,85 @@ Make sure you have `~/.composer/vendor/bin/` in your path.
 
 ## อัปเดท by Goragod Wiriya
 
-พบปัญหาการใช้งานเกี่ยวกับวงเล็บถ้ามีอะไรต่อท้ายจะ error และ หากเป็นฟังก์ชั่น
+พบปัญหาการใช้งานเกี่ยวกับวงเล็บถ้ามีอะไรต่อท้ายจะ error และ หากเป็นการเรียกฟังก์ชั่น
 
 มีการเพิ่มกฏเล็กน้อย
+1. สามารถกำหนดค่าเริ่มต้นที่จะใส่ลงในฟังก์ชั่น setup ได้
 
-1. เครื่องหมายเปรียบเทียบต้องอยู่ภายใต้ [...] เช่น [==] หรือ [<=]
+2. สามารถกำหนด parameter ให้กับ Class ในตอนเริ่มต้นได้
 
-2. สามารถใช้ฟังก์ชั่นได้ โดยไม่ต้องใส่วงเล็บครอบ
+/**
 
-###ตัวอย่าง
+*
 
-@assert (param1, param2) [==] expectedResult
+* @setupParam new Object
 
-@assert where(1)->text() [!=] expectedResult
+* @setup $this->value1 = 'one';
+
+* @setup $this->value2 = 'true';
+
+*/
+
+myClass {
+
+
+
+}
+
+ผลลัพท์
+
+class myClassTest extends \PHPUnit_Framework_TestCase
+
+{
+
+    protected $object;
+
+    protected function setUp()
+
+    {
+
+        $this->object = new myClass(new Query);
+
+        $$this->object->value1 = 'one';
+
+        $$this->object->value2 = 'true';
+
+    }
+
+}
+
+
+1. ผลลัพท์ที่เป็น string ต้องอยู่ภายใต้เครื่องหมาย "" เท่านั้น
+
+2. สามารถใส่ผลลัพท์ที่เป็นตัวเลขได้
+
+3. สามารถใส่ผลลัพท์ในรูป Array ได้
+
+4. สามารถใส่ option ได้โดยมีรูปแบบ [[....]] โดยใส่ด้านท้ายสุดของยรรทัด option จะถูกแทรกลงใน testFunction ก่อนทำการประมวลผล Test
+
+3. สามารถใช้ฟังก์ชั่นได้ โดยไม่ต้องใส่วงเล็บครอบ
+
+### ตัวอย่าง
+
+@assert (param1, param2) [==] 1
+
+@assert where(1)->text() [!=] "expectedResult"
+
+@assert (param1, param2) [==] array('one', 'two')
+
+ตัวอย่างการใส่ option
+
+@assert (param1, param2) [==] 1 [[$this->properties = 0]]
+
+public function testCreateUrl3()
+
+ {
+
+    $this->object->properties = 0;
+
+    $this->assertEquals(
+
+            ...., .....
+
+    );
+}

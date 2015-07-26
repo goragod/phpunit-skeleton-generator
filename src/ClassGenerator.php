@@ -40,7 +40,6 @@
  * @link       http://www.phpunit.de/
  * @since      File available since Release 1.0.0
  */
-
 namespace SebastianBergmann\PHPUnit\SkeletonGenerator;
 
 /**
@@ -54,6 +53,7 @@ namespace SebastianBergmann\PHPUnit\SkeletonGenerator;
  */
 class ClassGenerator extends AbstractGenerator
 {
+
     /**
      * Constructor.
      *
@@ -66,15 +66,14 @@ class ClassGenerator extends AbstractGenerator
     public function __construct($inClassName, $inSourceFile = '', $outClassName = '', $outSourceFile = '')
     {
         if (empty($inSourceFile)) {
-            $inSourceFile = $inClassName . '.php';
+            $inSourceFile = $inClassName.'.php';
         }
 
         if (!is_file($inSourceFile)) {
             throw new \RuntimeException(
-                sprintf(
-                    '"%s" could not be opened.',
-                    $inSourceFile
-                )
+            sprintf(
+                '"%s" could not be opened.', $inSourceFile
+            )
             );
         }
 
@@ -83,14 +82,11 @@ class ClassGenerator extends AbstractGenerator
         }
 
         if (empty($outSourceFile)) {
-            $outSourceFile = dirname($inSourceFile) . DIRECTORY_SEPARATOR . $outClassName . '.php';
+            $outSourceFile = dirname($inSourceFile).DIRECTORY_SEPARATOR.$outClassName.'.php';
         }
 
         parent::__construct(
-            $inClassName,
-            $inSourceFile,
-            $outClassName,
-            $outSourceFile
+            $inClassName, $inSourceFile, $outClassName, $outSourceFile
         );
     }
 
@@ -104,10 +100,7 @@ class ClassGenerator extends AbstractGenerator
         foreach ($this->findTestedMethods() as $method) {
             $methodTemplate = new \Text_Template(
                 sprintf(
-                    '%s%stemplate%sMethod.tpl',
-                    __DIR__,
-                    DIRECTORY_SEPARATOR,
-                    DIRECTORY_SEPARATOR
+                    '%s%stemplate%sMethod.tpl', __DIR__, DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR
                 )
             );
 
@@ -120,19 +113,16 @@ class ClassGenerator extends AbstractGenerator
 
         $classTemplate = new \Text_Template(
             sprintf(
-                '%s%stemplate%sClass.tpl',
-                __DIR__,
-                DIRECTORY_SEPARATOR,
-                DIRECTORY_SEPARATOR
+                '%s%stemplate%sClass.tpl', __DIR__, DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR
             )
         );
 
         $classTemplate->setVar(
             array(
                 'className' => $this->outClassName['fullyQualifiedClassName'],
-                'methods'   => $methods,
-                'date'      => date('Y-m-d'),
-                'time'      => date('H:i:s')
+                'methods' => $methods,
+                'date' => date('Y-m-d'),
+                'time' => date('H:i:s')
             )
         );
 
@@ -148,9 +138,9 @@ class ClassGenerator extends AbstractGenerator
     protected function findTestedMethods()
     {
         $setUpVariables = array();
-        $testedMethods  = array();
-        $classes        = $this->getClassesInFile($this->inSourceFile);
-        $testMethods    = $classes[$this->inClassName['fullyQualifiedClassName']]['methods'];
+        $testedMethods = array();
+        $classes = $this->getClassesInFile($this->inSourceFile);
+        $testMethods = $classes[$this->inClassName['fullyQualifiedClassName']]['methods'];
         unset($classes);
 
         foreach ($testMethods as $name => $testMethod) {
@@ -171,18 +161,18 @@ class ClassGenerator extends AbstractGenerator
             }
 
             $start = strpos($testMethod['signature'], '(') + 1;
-            $end   = strlen($testMethod['signature']) - $start - 1;
-            $args  = substr($testMethod['signature'], $start, $end);
+            $end = strlen($testMethod['signature']) - $start - 1;
+            $args = substr($testMethod['signature'], $start, $end);
 
             foreach (explode(',', $args) as $arg) {
                 $arg = explode(' ', trim($arg));
 
                 if (count($arg) == 2) {
                     $type = $arg[0];
-                    $var  = $arg[1];
+                    $var = $arg[1];
                 } else {
                     $type = null;
-                    $var  = $arg[0];
+                    $var = $arg[0];
                 }
 
                 if ($type == $this->outClassName['fullyQualifiedClassName']) {
@@ -192,38 +182,20 @@ class ClassGenerator extends AbstractGenerator
 
             $variables = array_unique(
                 array_merge(
-                    $setUpVariables,
-                    $argVariables,
-                    $this->findVariablesThatReferenceClass($testMethod['tokens'])
+                    $setUpVariables, $argVariables, $this->findVariablesThatReferenceClass($testMethod['tokens'])
                 )
             );
 
             foreach ($testMethod['tokens'] as $i => $token) {
-                if (is_array($token) && $token[0] == T_DOUBLE_COLON &&
-                    is_array($testMethod['tokens'][$i-1]) &&
-                    $testMethod['tokens'][$i-1][0] == T_STRING &&
-                    $testMethod['tokens'][$i-1][1] == $this->outClassName['fullyQualifiedClassName'] &&
-                    is_array($testMethod['tokens'][$i+1]) &&
-                    $testMethod['tokens'][$i+1][0] == T_STRING &&
-                    $testMethod['tokens'][$i+2] == '(') {
+                if (is_array($token) && $token[0] == T_DOUBLE_COLON && is_array($testMethod['tokens'][$i - 1]) && $testMethod['tokens'][$i - 1][0] == T_STRING && $testMethod['tokens'][$i - 1][1] == $this->outClassName['fullyQualifiedClassName'] && is_array($testMethod['tokens'][$i + 1]) && $testMethod['tokens'][$i + 1][0] == T_STRING && $testMethod['tokens'][$i + 2] == '(') {
                     // Class::method()
-                    $testedMethods[] = $testMethod['tokens'][$i+1][1];
-                } elseif (is_array($token) && $token[0] == T_OBJECT_OPERATOR &&
-                    in_array($this->findVariableName($testMethod['tokens'], $i), $variables) &&
-                    is_array($testMethod['tokens'][$i+2]) &&
-                    $testMethod['tokens'][$i+2][0] == T_OBJECT_OPERATOR &&
-                    is_array($testMethod['tokens'][$i+3]) &&
-                    $testMethod['tokens'][$i+3][0] == T_STRING &&
-                    $testMethod['tokens'][$i+4] == '(') {
+                    $testedMethods[] = $testMethod['tokens'][$i + 1][1];
+                } elseif (is_array($token) && $token[0] == T_OBJECT_OPERATOR && in_array($this->findVariableName($testMethod['tokens'], $i), $variables) && is_array($testMethod['tokens'][$i + 2]) && $testMethod['tokens'][$i + 2][0] == T_OBJECT_OPERATOR && is_array($testMethod['tokens'][$i + 3]) && $testMethod['tokens'][$i + 3][0] == T_STRING && $testMethod['tokens'][$i + 4] == '(') {
                     // $this->object->method()
-                    $testedMethods[] = $testMethod['tokens'][$i+3][1];
-                } elseif (is_array($token) && $token[0] == T_OBJECT_OPERATOR &&
-                    in_array($this->findVariableName($testMethod['tokens'], $i), $variables) &&
-                    is_array($testMethod['tokens'][$i+1]) &&
-                    $testMethod['tokens'][$i+1][0] == T_STRING &&
-                    $testMethod['tokens'][$i+2] == '(') {
+                    $testedMethods[] = $testMethod['tokens'][$i + 3][1];
+                } elseif (is_array($token) && $token[0] == T_OBJECT_OPERATOR && in_array($this->findVariableName($testMethod['tokens'], $i), $variables) && is_array($testMethod['tokens'][$i + 1]) && $testMethod['tokens'][$i + 1][0] == T_STRING && $testMethod['tokens'][$i + 2] == '(') {
                     // $object->method()
-                    $testedMethods[] = $testMethod['tokens'][$i+1][1];
+                    $testedMethods[] = $testMethod['tokens'][$i + 1][1];
                 }
             }
         }
@@ -243,7 +215,7 @@ class ClassGenerator extends AbstractGenerator
      */
     protected function findVariablesThatReferenceClass(array $tokens)
     {
-        $inNew     = false;
+        $inNew = false;
         $variables = array();
 
         foreach ($tokens as $i => $token) {
@@ -291,11 +263,8 @@ class ClassGenerator extends AbstractGenerator
             if (is_array($tokens[$i]) && $tokens[$i][0] == T_VARIABLE) {
                 $variable = $tokens[$i][1];
 
-                if (is_array($tokens[$i+1]) &&
-                    $tokens[$i+1][0] == T_OBJECT_OPERATOR &&
-                    $tokens[$i+2] != '(' &&
-                    $tokens[$i+3] != '(') {
-                    $variable .= '->' . $tokens[$i+2][1];
+                if (is_array($tokens[$i + 1]) && $tokens[$i + 1][0] == T_OBJECT_OPERATOR && $tokens[$i + 2] != '(' && $tokens[$i + 3] != '(') {
+                    $variable .= '->'.$tokens[$i + 2][1];
                 }
 
                 return $variable;
@@ -313,20 +282,20 @@ class ClassGenerator extends AbstractGenerator
     {
         $result = array();
 
-        $tokens                     = token_get_all(
+        $tokens = token_get_all(
             file_get_contents($filename)
         );
-        $numTokens                  = count($tokens);
-        $blocks                     = array();
-        $line                       = 1;
-        $currentBlock               = false;
-        $currentNamespace           = false;
-        $currentClass               = false;
-        $currentFunction            = false;
-        $currentFunctionStartLine   = false;
-        $currentFunctionTokens      = array();
-        $currentDocComment          = false;
-        $currentSignature           = false;
+        $numTokens = count($tokens);
+        $blocks = array();
+        $line = 1;
+        $currentBlock = false;
+        $currentNamespace = false;
+        $currentClass = false;
+        $currentFunction = false;
+        $currentFunctionStartLine = false;
+        $currentFunctionTokens = array();
+        $currentDocComment = false;
+        $currentSignature = false;
         $currentSignatureStartToken = false;
 
         for ($i = 0; $i < $numTokens; $i++) {
@@ -351,7 +320,7 @@ class ClassGenerator extends AbstractGenerator
 
                         $currentSignature = trim($currentSignature);
 
-                        $block                      = $currentFunction;
+                        $block = $currentFunction;
                         $currentSignatureStartToken = false;
                     } else {
                         $block = false;
@@ -366,7 +335,7 @@ class ClassGenerator extends AbstractGenerator
                     if ($block !== false && $block !== null) {
                         if ($block == $currentFunction) {
                             if ($currentDocComment !== false) {
-                                $docComment        = $currentDocComment;
+                                $docComment = $currentDocComment;
                                 $currentDocComment = false;
                             } else {
                                 $docComment = '';
@@ -374,24 +343,24 @@ class ClassGenerator extends AbstractGenerator
 
                             $tmp = array(
                                 'docComment' => $docComment,
-                                'signature'  => $currentSignature,
-                                'startLine'  => $currentFunctionStartLine,
-                                'endLine'    => $line,
-                                'tokens'     => $currentFunctionTokens
+                                'signature' => $currentSignature,
+                                'startLine' => $currentFunctionStartLine,
+                                'endLine' => $line,
+                                'tokens' => $currentFunctionTokens
                             );
 
                             if ($currentClass !== false) {
                                 $result[$currentClass]['methods'][$currentFunction] = $tmp;
                             }
 
-                            $currentFunction          = false;
+                            $currentFunction = false;
                             $currentFunctionStartLine = false;
-                            $currentFunctionTokens    = array();
-                            $currentSignature         = false;
+                            $currentFunctionTokens = array();
+                            $currentSignature = false;
                         } elseif ($block == $currentClass) {
                             $result[$currentClass]['endLine'] = $line;
 
-                            $currentClass          = false;
+                            $currentClass = false;
                             $currentClassStartLine = false;
                         }
                     }
@@ -406,11 +375,11 @@ class ClassGenerator extends AbstractGenerator
                     break;
 
                 case T_NAMESPACE:
-                    $currentNamespace = $tokens[$i+2][1];
+                    $currentNamespace = $tokens[$i + 2][1];
 
-                    for ($j = $i+3; $j < $numTokens; $j += 2) {
+                    for ($j = $i + 3; $j < $numTokens; $j += 2) {
                         if ($tokens[$j][0] == T_NS_SEPARATOR) {
-                            $currentNamespace .= '\\' . $tokens[$j+1][1];
+                            $currentNamespace .= '\\'.$tokens[$j + 1][1];
                         } else {
                             break;
                         }
@@ -431,40 +400,35 @@ class ClassGenerator extends AbstractGenerator
                     $currentBlock = T_CLASS;
 
                     if ($currentNamespace === false) {
-                        $currentClass = $tokens[$i+2][1];
+                        $currentClass = $tokens[$i + 2][1];
                     } else {
-                        $currentClass = $currentNamespace . '\\' .
-                            $tokens[$i+2][1];
+                        $currentClass = $currentNamespace.'\\'.
+                            $tokens[$i + 2][1];
                     }
 
                     if ($currentDocComment !== false) {
-                        $docComment        = $currentDocComment;
+                        $docComment = $currentDocComment;
                         $currentDocComment = false;
                     } else {
                         $docComment = '';
                     }
 
                     $result[$currentClass] = array(
-                        'methods'    => array(),
+                        'methods' => array(),
                         'docComment' => $docComment,
-                        'startLine'  => $line
+                        'startLine' => $line
                     );
                     break;
 
                 case T_FUNCTION:
-                    if (!((is_array($tokens[$i+2]) &&
-                            $tokens[$i+2][0] == T_STRING) ||
-                        (is_string($tokens[$i+2]) &&
-                            $tokens[$i+2] == '&' &&
-                            is_array($tokens[$i+3]) &&
-                            $tokens[$i+3][0] == T_STRING))) {
+                    if (!((is_array($tokens[$i + 2]) && $tokens[$i + 2][0] == T_STRING) || (is_string($tokens[$i + 2]) && $tokens[$i + 2] == '&' && is_array($tokens[$i + 3]) && $tokens[$i + 3][0] == T_STRING))) {
                         continue;
                     }
 
-                    $currentBlock             = T_FUNCTION;
+                    $currentBlock = T_FUNCTION;
                     $currentFunctionStartLine = $line;
 
-                    $done                       = false;
+                    $done = false;
                     $currentSignatureStartToken = $i - 1;
 
                     do {
@@ -485,16 +449,16 @@ class ClassGenerator extends AbstractGenerator
                         }
                     } while (!$done);
 
-                    if (isset($tokens[$i+2][1])) {
-                        $functionName = $tokens[$i+2][1];
-                    } elseif (isset($tokens[$i+3][1])) {
-                        $functionName = $tokens[$i+3][1];
+                    if (isset($tokens[$i + 2][1])) {
+                        $functionName = $tokens[$i + 2][1];
+                    } elseif (isset($tokens[$i + 3][1])) {
+                        $functionName = $tokens[$i + 3][1];
                     }
 
                     if ($currentNamespace === false) {
                         $currentFunction = $functionName;
                     } else {
-                        $currentFunction = $currentNamespace . '\\' .
+                        $currentFunction = $currentNamespace.'\\'.
                             $functionName;
                     }
                     break;

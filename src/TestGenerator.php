@@ -96,30 +96,18 @@ class TestGenerator extends AbstractGenerator
             }
 
             if (empty($inSourceFile)) {
-                throw new \RuntimeException(
-                sprintf(
-                    'Neither "%s" nor "%s" could be opened.', $possibleFilenames[0], $possibleFilenames[1]
-                )
-                );
+                throw new \RuntimeException(sprintf('Neither "%s" nor "%s" could be opened.', $possibleFilenames[0], $possibleFilenames[1]));
             }
 
             if (!is_file($inSourceFile)) {
-                throw new \RuntimeException(
-                sprintf(
-                    '"%s" could not be opened.', $inSourceFile
-                )
-                );
+                throw new \RuntimeException(sprintf('"%s" could not be opened.', $inSourceFile));
             }
 
             $inSourceFile = realpath($inSourceFile);
             include_once $inSourceFile;
 
             if (!class_exists($inClassName)) {
-                throw new \RuntimeException(
-                sprintf(
-                    'Could not find class "%s" in "%s".', $inClassName, $inSourceFile
-                )
-                );
+                throw new \RuntimeException(sprintf('Could not find class "%s" in "%s".', $inClassName, $inSourceFile));
             }
         }
 
@@ -154,12 +142,16 @@ class TestGenerator extends AbstractGenerator
 
                 if (preg_match_all('/@assert(.*)$/Um', $method->getDocComment(), $annotations)) {
                     foreach ($annotations[1] as $annotation) {
-                        if (preg_match('/\s{0,}(.*)\s+\[(throws|[!=<>]+)\]\s+(.*)\s{0,}$/', $annotation, $matches)) {
+                        if (preg_match('/^\s{0,}(.*)\s+\[([!=<>]+|throws)\]\s+(.*)\s{0,}$/', $annotation, $matches)) {
                             if (preg_match('/^\((.*)\)$/', $matches[1], $ps)) {
                                 $matches[1] = $ps[1];
                                 $mode = '';
                             } else {
                                 $mode = 'Function';
+                            }
+                            if (preg_match('/(.*)\[\[(.*)\]\]$/', $matches[3], $ps)) {
+                                $matches[3] = $ps[1];
+                                $matches[4] = $ps[2];
                             }
                             switch ($matches[2]) {
                                 case '==':
@@ -199,7 +191,8 @@ class TestGenerator extends AbstractGenerator
                                     break;
 
                                 default:
-                                    throw new \RuntimeException(sprintf('Token "%s" could not be parsed in @assert annotation.', $matches[2]));
+                                    // assert ไม่ถูกต้อง
+                                    throw new \RuntimeException('assert error : '.$annotation);
                             }
 
                             if ($assertion == 'exception') {
@@ -247,13 +240,17 @@ class TestGenerator extends AbstractGenerator
                                     'expected' => $matches[3],
                                     'origMethodName' => $origMethodName,
                                     'className' => $this->inClassName['fullyQualifiedClassName'],
-                                    'methodName' => $methodName
+                                    'methodName' => $methodName,
+                                    'option' => empty($matches[4]) ? '' : str_replace('$this', '$this->object', $matches[4]).';'
                                 )
                             );
 
                             $methods .= $methodTemplate->render();
 
                             $assertAnnotationFound = true;
+                        } else {
+                            // assert ไม่ถูกต้อง
+                            throw new \RuntimeException('assert error : '.$annotation);
                         }
                     }
                 }
@@ -284,6 +281,21 @@ class TestGenerator extends AbstractGenerator
             )
         );
 
+        // parse setup from class doc
+        $documents = $class->getDocComment();
+        $setups = array();
+        $setupParam = '';
+        if (preg_match_all('/@setupParam\s{1,}(.*)\s{0,}$/Um', $documents, $annotations)) {
+            foreach ($annotations[1] as $annotation) {
+                $setupParam = $annotation;
+            }
+        }
+        if (preg_match_all('/@setup\s{1,}(.*)\s{0,}$/Um', $documents, $annotations)) {
+            foreach ($annotations[1] as $annotation) {
+                $setups[] = str_replace('$this', '$this->object', $annotation);
+            }
+        }
+
         if ($this->outClassName['namespace'] != '') {
             $namespace = "\nnamespace ".
                 $this->outClassName['namespace'].";\n";
@@ -299,7 +311,9 @@ class TestGenerator extends AbstractGenerator
                 'testClassName' => $this->outClassName['className'],
                 'methods' => $methods.$incompleteMethods,
                 'date' => date('Y-m-d'),
-                'time' => date('H:i:s')
+                'time' => date('H:i:s'),
+                'setups' => implode("\n", $setups),
+                'setupParam' => empty($setupParam) ? '' : "($setupParam)"
             )
         );
 

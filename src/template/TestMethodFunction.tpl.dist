@@ -6,6 +6,7 @@
      */
     public function test{methodName}()
     {
+        {option}
         $this->assert{assertion}(
             {expected},
             $this->object->{arguments}

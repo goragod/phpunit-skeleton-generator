@@ -3,10 +3,12 @@
      * Generated from @assert {annotation}.
      *
      * @covers {className}::{origMethodName}
-     * @expectedException {expected}
      */
     public function test{methodName}()
     {
         {option}
-        $this->object->{origMethodName}({arguments});
+        $this->assert{assertion}(
+            {expected},
+            {className}::{origMethodName}({arguments});
+        );
     }
