@@ -15,7 +15,7 @@
 
 ## การใช้งานร่วมกับ NetBeans
 
-* การใช้งาน เนื่องจากผมใช้งานร่วมกับ NetBeans ผมตั้งค่าตามนี้ https://netbeans.org/kb/docs/php/phpunit.html
+* เนื่องจากผมใช้งานร่วมกับ NetBeans ผมตั้งค่าตามนี้ https://netbeans.org/kb/docs/php/phpunit.html
 * โดยในช่อง `Skeleton Generator scripts` ผมเลือกไปที่ไฟล์ `phpunit-skelgen` ที่อยู่ภายใต้โฟลเดอร์ที่ติดตั้งไว้
 
 ## อัปเดทโดย `Goragod Wiriya`
