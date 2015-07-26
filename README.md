@@ -5,10 +5,15 @@
 ## การติดตั้งจาก GitHub
 
 * ให้ทำการ clone สคริปต์ หรือ ดาวน์โหลด script จาก GitHub ไปไว้ในเครื่องได้เลยครับ
-* เปิด terminal ย้ายโฟลเดอร์ไปโฟลเดอร์ที่ติดตงโปรแกรมไว้
+* เปิด `terminal` ย้ายโฟลเดอร์ไปยังโฟลเดอร์ที่ติดตั้งโปรแกรมไว้
+
     cd /path/to/phpunit_skeleton_generator/
-* ติดตั้ง โดย composer
+
+* ดาวน์โหลด composer และติดตั้งโปรแกรมที่จำเป็น โดย composer
+
+    wget http://getcomposer.org/composer.phar
     php composer.phar install
+
 * รอให้ composer ทำการติดตั้งสคริปต์ที่จำเป็นจนแล้วเสร็จ หลังจากนั้นก็ใช้งานได้เลย
 * การใช้งาน เนื่องจากผมใช้งานร่วมกับ NetBeans ผมตั้งค่าตามนี้ https://netbeans.org/kb/docs/php/phpunit.html
 * โดยในช่อง `Skeleton Generator scripts` ผมเลือกไปที่ไฟล์ `phpunit-skelgen` ที่อยู่ภายใต้โฟลเดอร์ที่ติดตั้งไว้
