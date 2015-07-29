@@ -8,5 +8,5 @@
     public function test{methodName}()
     {
         {option}
-        {className}::{origMethodName}({arguments});
+        \{className}::{origMethodName}({arguments});
     }
