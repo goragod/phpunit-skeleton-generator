@@ -10,7 +10,9 @@
 * รอให้ composer ทำการติดตั้งสคริปต์ที่จำเป็นจนแล้วเสร็จ หลังจากนั้นก็ใช้งานได้เลย
 
     cd /path/to/phpunit_skeleton_generator/
+
     wget http://getcomposer.org/composer.phar
+
     php composer.phar install
 
 ## การใช้งานร่วมกับ NetBeans
