@@ -40,6 +40,7 @@
  * @link       http://www.phpunit.de/
  * @since      File available since Release 1.0.0
  */
+
 namespace SebastianBergmann\PHPUnit\SkeletonGenerator;
 
 /**
@@ -53,270 +54,269 @@ namespace SebastianBergmann\PHPUnit\SkeletonGenerator;
  */
 class TestGenerator extends AbstractGenerator
 {
+	/**
+	 * @var array
+	 */
+	protected $methodNameCounter = array();
 
-    /**
-     * @var array
-     */
-    protected $methodNameCounter = array();
+	/**
+	 * Constructor.
+	 *
+	 * @param string $inClassName
+	 * @param string $inSourceFile
+	 * @param string $outClassName
+	 * @param string $outSourceFile
+	 * @throws \RuntimeException
+	 */
+	public function __construct($inClassName, $inSourceFile = '', $outClassName = '', $outSourceFile = '')
+	{
+		if (class_exists($inClassName)) {
+			$reflector = new \ReflectionClass($inClassName);
+			$inSourceFile = $reflector->getFileName();
 
-    /**
-     * Constructor.
-     *
-     * @param string $inClassName
-     * @param string $inSourceFile
-     * @param string $outClassName
-     * @param string $outSourceFile
-     * @throws \RuntimeException
-     */
-    public function __construct($inClassName, $inSourceFile = '', $outClassName = '', $outSourceFile = '')
-    {
-        if (class_exists($inClassName)) {
-            $reflector = new \ReflectionClass($inClassName);
-            $inSourceFile = $reflector->getFileName();
+			if ($inSourceFile === false) {
+				$inSourceFile = '<internal>';
+			}
 
-            if ($inSourceFile === false) {
-                $inSourceFile = '<internal>';
-            }
+			unset($reflector);
+		} else {
+			if (empty($inSourceFile)) {
+				$possibleFilenames = array(
+					$inClassName.'.php',
+					str_replace(
+					array('_', '\\'), DIRECTORY_SEPARATOR, $inClassName
+					).'.php'
+				);
 
-            unset($reflector);
-        } else {
-            if (empty($inSourceFile)) {
-                $possibleFilenames = array(
-                    $inClassName.'.php',
-                    str_replace(
-                        array('_', '\\'), DIRECTORY_SEPARATOR, $inClassName
-                    ).'.php'
-                );
+				foreach ($possibleFilenames as $possibleFilename) {
+					if (is_file($possibleFilename)) {
+						$inSourceFile = $possibleFilename;
+					}
+				}
+			}
 
-                foreach ($possibleFilenames as $possibleFilename) {
-                    if (is_file($possibleFilename)) {
-                        $inSourceFile = $possibleFilename;
-                    }
-                }
-            }
+			if (empty($inSourceFile)) {
+				throw new \RuntimeException(sprintf('Neither "%s" nor "%s" could be opened.', $possibleFilenames[0], $possibleFilenames[1]));
+			}
 
-            if (empty($inSourceFile)) {
-                throw new \RuntimeException(sprintf('Neither "%s" nor "%s" could be opened.', $possibleFilenames[0], $possibleFilenames[1]));
-            }
+			if (!is_file($inSourceFile)) {
+				throw new \RuntimeException(sprintf('"%s" could not be opened.', $inSourceFile));
+			}
 
-            if (!is_file($inSourceFile)) {
-                throw new \RuntimeException(sprintf('"%s" could not be opened.', $inSourceFile));
-            }
+			$inSourceFile = realpath($inSourceFile);
+			include_once $inSourceFile;
 
-            $inSourceFile = realpath($inSourceFile);
-            include_once $inSourceFile;
+			if (!class_exists($inClassName)) {
+				throw new \RuntimeException(sprintf('Could not find class "%s" in "%s".', $inClassName, $inSourceFile));
+			}
+		}
 
-            if (!class_exists($inClassName)) {
-                throw new \RuntimeException(sprintf('Could not find class "%s" in "%s".', $inClassName, $inSourceFile));
-            }
-        }
+		if (empty($outClassName)) {
+			$outClassName = $inClassName.'Test';
+		}
 
-        if (empty($outClassName)) {
-            $outClassName = $inClassName.'Test';
-        }
+		if (empty($outSourceFile)) {
+			$outSourceFile = dirname($inSourceFile).DIRECTORY_SEPARATOR.$outClassName.'.php';
+		}
 
-        if (empty($outSourceFile)) {
-            $outSourceFile = dirname($inSourceFile).DIRECTORY_SEPARATOR.$outClassName.'.php';
-        }
+		parent::__construct(
+		$inClassName, $inSourceFile, $outClassName, $outSourceFile
+		);
+	}
 
-        parent::__construct(
-            $inClassName, $inSourceFile, $outClassName, $outSourceFile
-        );
-    }
+	/**
+	 * @return string
+	 */
+	public function generate()
+	{
+		$class = new \ReflectionClass(
+		$this->inClassName['fullyQualifiedClassName']
+		);
 
-    /**
-     * @return string
-     */
-    public function generate()
-    {
-        $class = new \ReflectionClass(
-            $this->inClassName['fullyQualifiedClassName']
-        );
+		$methods = '';
+		$incompleteMethods = '';
 
-        $methods = '';
-        $incompleteMethods = '';
+		foreach ($class->getMethods() as $method) {
+			if (!$method->isConstructor() && !$method->isAbstract() && $method->isPublic() && $method->getDeclaringClass()->getName() == $this->inClassName['fullyQualifiedClassName']) {
+				$assertAnnotationFound = false;
 
-        foreach ($class->getMethods() as $method) {
-            if (!$method->isConstructor() && !$method->isAbstract() && $method->isPublic() && $method->getDeclaringClass()->getName() == $this->inClassName['fullyQualifiedClassName']) {
-                $assertAnnotationFound = false;
+				if (preg_match_all('/@assert(.*)$/Um', $method->getDocComment(), $annotations)) {
+					foreach ($annotations[1] as $annotation) {
+						if (preg_match('/^\s{0,}(.*)\s+\[([!=<>]+|throws)\]\s+(.*)\s{0,}$/', $annotation, $matches)) {
+							if (preg_match('/^\((.*)\)$/', $matches[1], $ps)) {
+								$matches[1] = $ps[1];
+								$mode = '';
+							} else {
+								$mode = 'Function';
+							}
+							if (preg_match('/(.*)\[\[(.*)\]\]$/', $matches[3], $ps)) {
+								$matches[3] = $ps[1];
+								$matches[4] = $ps[2];
+							}
+							switch ($matches[2]) {
+								case '==':
+									$assertion = 'Equals';
+									break;
 
-                if (preg_match_all('/@assert(.*)$/Um', $method->getDocComment(), $annotations)) {
-                    foreach ($annotations[1] as $annotation) {
-                        if (preg_match('/^\s{0,}(.*)\s+\[([!=<>]+|throws)\]\s+(.*)\s{0,}$/', $annotation, $matches)) {
-                            if (preg_match('/^\((.*)\)$/', $matches[1], $ps)) {
-                                $matches[1] = $ps[1];
-                                $mode = '';
-                            } else {
-                                $mode = 'Function';
-                            }
-                            if (preg_match('/(.*)\[\[(.*)\]\]$/', $matches[3], $ps)) {
-                                $matches[3] = $ps[1];
-                                $matches[4] = $ps[2];
-                            }
-                            switch ($matches[2]) {
-                                case '==':
-                                    $assertion = 'Equals';
-                                    break;
+								case '!=':
+									$assertion = 'NotEquals';
+									break;
 
-                                case '!=':
-                                    $assertion = 'NotEquals';
-                                    break;
+								case '===':
+									$assertion = 'Same';
+									break;
 
-                                case '===':
-                                    $assertion = 'Same';
-                                    break;
+								case '!==':
+									$assertion = 'NotSame';
+									break;
 
-                                case '!==':
-                                    $assertion = 'NotSame';
-                                    break;
+								case '>':
+									$assertion = 'GreaterThan';
+									break;
 
-                                case '>':
-                                    $assertion = 'GreaterThan';
-                                    break;
+								case '>=':
+									$assertion = 'GreaterThanOrEqual';
+									break;
 
-                                case '>=':
-                                    $assertion = 'GreaterThanOrEqual';
-                                    break;
+								case '<':
+									$assertion = 'LessThan';
+									break;
 
-                                case '<':
-                                    $assertion = 'LessThan';
-                                    break;
+								case '<=':
+									$assertion = 'LessThanOrEqual';
+									break;
 
-                                case '<=':
-                                    $assertion = 'LessThanOrEqual';
-                                    break;
+								case 'throws':
+									$assertion = 'exception';
+									break;
 
-                                case 'throws':
-                                    $assertion = 'exception';
-                                    break;
+								default:
+									// assert ไม่ถูกต้อง
+									throw new \RuntimeException('assert error : '.$annotation);
+							}
 
-                                default:
-                                    // assert ไม่ถูกต้อง
-                                    throw new \RuntimeException('assert error : '.$annotation);
-                            }
+							if ($assertion == 'exception') {
+								$template = 'TestMethodException';
+							} elseif ($assertion == 'Equals' && strtolower($matches[3]) == 'true') {
+								$assertion = 'True';
+								$template = 'TestMethodBool';
+							} elseif ($assertion == 'NotEquals' && strtolower($matches[3]) == 'true') {
+								$assertion = 'False';
+								$template = 'TestMethodBool';
+							} elseif ($assertion == 'Equals' && strtolower($matches[3]) == 'false') {
+								$assertion = 'False';
+								$template = 'TestMethodBool';
+							} elseif ($assertion == 'NotEquals' && strtolower($matches[3]) == 'false') {
+								$assertion = 'True';
+								$template = 'TestMethodBool';
+							} else {
+								$template = 'TestMethod';
+							}
+							$template .= $mode;
+							if ($method->isStatic()) {
+								$template .= 'Static';
+							}
 
-                            if ($assertion == 'exception') {
-                                $template = 'TestMethodException';
-                            } elseif ($assertion == 'Equals' && strtolower($matches[3]) == 'true') {
-                                $assertion = 'True';
-                                $template = 'TestMethodBool';
-                            } elseif ($assertion == 'NotEquals' && strtolower($matches[3]) == 'true') {
-                                $assertion = 'False';
-                                $template = 'TestMethodBool';
-                            } elseif ($assertion == 'Equals' && strtolower($matches[3]) == 'false') {
-                                $assertion = 'False';
-                                $template = 'TestMethodBool';
-                            } elseif ($assertion == 'NotEquals' && strtolower($matches[3]) == 'false') {
-                                $assertion = 'True';
-                                $template = 'TestMethodBool';
-                            } else {
-                                $template = 'TestMethod';
-                            }
-                            $template .= $mode;
-                            if ($method->isStatic()) {
-                                $template .= 'Static';
-                            }
+							$methodTemplate = new \Text_Template(sprintf('%s%stemplate%s%s.tpl', __DIR__, DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR, $template));
 
-                            $methodTemplate = new \Text_Template(sprintf('%s%stemplate%s%s.tpl', __DIR__, DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR, $template));
+							$origMethodName = $method->getName();
+							$methodName = ucfirst($origMethodName);
 
-                            $origMethodName = $method->getName();
-                            $methodName = ucfirst($origMethodName);
+							if (isset($this->methodNameCounter[$methodName])) {
+								$this->methodNameCounter[$methodName] ++;
+							} else {
+								$this->methodNameCounter[$methodName] = 1;
+							}
 
-                            if (isset($this->methodNameCounter[$methodName])) {
-                                $this->methodNameCounter[$methodName] ++;
-                            } else {
-                                $this->methodNameCounter[$methodName] = 1;
-                            }
+							if ($this->methodNameCounter[$methodName] > 1) {
+								$methodName .= $this->methodNameCounter[$methodName];
+							}
 
-                            if ($this->methodNameCounter[$methodName] > 1) {
-                                $methodName .= $this->methodNameCounter[$methodName];
-                            }
+							$methodTemplate->setVar(
+							array(
+								'annotation' => trim($annotation),
+								'arguments' => $matches[1],
+								'assertion' => isset($assertion) ? $assertion : '',
+								'expected' => $matches[3],
+								'origMethodName' => $origMethodName,
+								'className' => $this->inClassName['fullyQualifiedClassName'],
+								'methodName' => $methodName,
+								'option' => empty($matches[4]) ? '' : str_replace('$this', '$this->object', $matches[4]).';'
+							)
+							);
 
-                            $methodTemplate->setVar(
-                                array(
-                                    'annotation' => trim($annotation),
-                                    'arguments' => $matches[1],
-                                    'assertion' => isset($assertion) ? $assertion : '',
-                                    'expected' => $matches[3],
-                                    'origMethodName' => $origMethodName,
-                                    'className' => $this->inClassName['fullyQualifiedClassName'],
-                                    'methodName' => $methodName,
-                                    'option' => empty($matches[4]) ? '' : str_replace('$this', '$this->object', $matches[4]).';'
-                                )
-                            );
+							$methods .= $methodTemplate->render();
 
-                            $methods .= $methodTemplate->render();
+							$assertAnnotationFound = true;
+						} else {
+							// assert ไม่ถูกต้อง
+							throw new \RuntimeException('assert error : '.$annotation);
+						}
+					}
+				}
 
-                            $assertAnnotationFound = true;
-                        } else {
-                            // assert ไม่ถูกต้อง
-                            throw new \RuntimeException('assert error : '.$annotation);
-                        }
-                    }
-                }
+				if (!$assertAnnotationFound) {
+					$methodTemplate = new \Text_Template(
+					sprintf(
+					'%s%stemplate%sIncompleteTestMethod.tpl', __DIR__, DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR
+					)
+					);
 
-                if (!$assertAnnotationFound) {
-                    $methodTemplate = new \Text_Template(
-                        sprintf(
-                            '%s%stemplate%sIncompleteTestMethod.tpl', __DIR__, DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR
-                        )
-                    );
+					$methodTemplate->setVar(
+					array(
+						'className' => $this->inClassName['fullyQualifiedClassName'],
+						'methodName' => ucfirst($method->getName()),
+						'origMethodName' => $method->getName()
+					)
+					);
 
-                    $methodTemplate->setVar(
-                        array(
-                            'className' => $this->inClassName['fullyQualifiedClassName'],
-                            'methodName' => ucfirst($method->getName()),
-                            'origMethodName' => $method->getName()
-                        )
-                    );
+					$incompleteMethods .= $methodTemplate->render();
+				}
+			}
+		}
 
-                    $incompleteMethods .= $methodTemplate->render();
-                }
-            }
-        }
+		$classTemplate = new \Text_Template(
+		sprintf(
+		'%s%stemplate%sTestClass.tpl', __DIR__, DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR
+		)
+		);
 
-        $classTemplate = new \Text_Template(
-            sprintf(
-                '%s%stemplate%sTestClass.tpl', __DIR__, DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR
-            )
-        );
+		// parse setup from class doc
+		$documents = $class->getDocComment();
+		$setups = array();
+		$setupParam = '';
+		if (preg_match_all('/@setupParam\s{1,}(.*)\s{0,}$/Um', $documents, $annotations)) {
+			foreach ($annotations[1] as $annotation) {
+				$setupParam = $annotation;
+			}
+		}
+		if (preg_match_all('/@setup\s{1,}(.*)\s{0,}$/Um', $documents, $annotations)) {
+			foreach ($annotations[1] as $annotation) {
+				$setups[] = str_replace('$this', '$this->object', $annotation);
+			}
+		}
 
-        // parse setup from class doc
-        $documents = $class->getDocComment();
-        $setups = array();
-        $setupParam = '';
-        if (preg_match_all('/@setupParam\s{1,}(.*)\s{0,}$/Um', $documents, $annotations)) {
-            foreach ($annotations[1] as $annotation) {
-                $setupParam = $annotation;
-            }
-        }
-        if (preg_match_all('/@setup\s{1,}(.*)\s{0,}$/Um', $documents, $annotations)) {
-            foreach ($annotations[1] as $annotation) {
-                $setups[] = str_replace('$this', '$this->object', $annotation);
-            }
-        }
-
-        if ($this->outClassName['namespace'] != '') {
-            $namespace = "\nnamespace ".
-                $this->outClassName['namespace'].";\n";
-        } else {
-            $namespace = '';
-        }
-
-        $classTemplate->setVar(
-            array(
-                'namespace' => $namespace,
-                'namespaceSeparator' => !empty($namespace) ? '\\' : '',
-                'className' => $this->inClassName['className'],
-                'testClassName' => $this->outClassName['className'],
-                'methods' => $methods.$incompleteMethods,
-                'date' => date('Y-m-d'),
-                'time' => date('H:i:s'),
-                'setups' => implode("\n", $setups),
-                'setupParam' => empty($setupParam) ? '' : "($setupParam)"
-            )
-        );
-
-        return $classTemplate->render();
-    }
+		if ($this->outClassName['namespace'] != '') {
+			$namespace = "\nnamespace ".
+			$this->outClassName['namespace'].";\n";
+		} else {
+			$namespace = '';
+		}
+		if (empty($setups)) {
+			// default setup
+			$setups[] = '$this->object = new '.$this->inClassName['className'].'('.$setupParam.')';
+		}
+		$classTemplate->setVar(array(
+			'namespace' => $namespace,
+			'namespaceSeparator' => !empty($namespace) ? '\\' : '',
+			'className' => $this->inClassName['className'],
+			'testClassName' => $this->outClassName['className'],
+			'methods' => $methods.$incompleteMethods,
+			'date' => date('Y-m-d'),
+			'time' => date('H:i:s'),
+			'setups' => implode("\n", $setups),
+			'setupParam' => empty($setupParam) ? '' : "($setupParam)"
+		));
+		return $classTemplate->render();
+	}
 }
